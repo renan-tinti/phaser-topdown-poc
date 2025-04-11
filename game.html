@@ -10,11 +10,13 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            background: #1e1e2f;
         }
 
         canvas {
             display: block;
             margin: auto;
+            border: 2px solid #4caf50;
         }
     </style>
 </head>
@@ -31,6 +33,7 @@
                 this.load.image('enemy', 'https://labs.phaser.io/assets/sprites/space-baddie.png');
                 this.load.image('bullet', 'https://labs.phaser.io/assets/sprites/bullet.png');
                 this.load.image('background', 'https://labs.phaser.io/assets/tilemaps/tiles/grass.png');
+                this.load.image('wall', 'https://labs.phaser.io/assets/sprites/block.png');
             }
 
             create() {
@@ -57,10 +60,14 @@
                 });
 
                 this.bullets = this.physics.add.group();
-                this.lastFired = 0;
-
                 this.enemies = this.physics.add.group();
+                this.walls = this.physics.add.staticGroup();
+                this.spawnWalls();
                 this.spawnEnemy();
+
+                this.physics.add.collider(this.player, this.walls);
+                this.physics.add.collider(this.enemies, this.walls);
+                this.physics.add.collider(this.bullets, this.walls, (bullet) => bullet.destroy());
 
                 this.physics.add.overlap(this.bullets, this.enemies, (bullet, enemy) => {
                     bullet.destroy();
@@ -75,14 +82,13 @@
                     }
                 });
 
-                // Health bars
                 this.playerHealthBar = this.add.graphics();
                 this.playerHealthBar.setScrollFactor(0);
 
                 this.keys = this.input.keyboard.addKeys('Q,W,E,R');
             }
 
-            update(time) {
+            update() {
                 const moveSpeed = 200;
                 const distance = Phaser.Math.Distance.Between(
                     this.player.x, this.player.y,
@@ -123,6 +129,17 @@
                 const enemy = this.enemies.create(x, y, 'enemy');
                 enemy.setCollideWorldBounds(true);
                 enemy.health = 100;
+            }
+
+            spawnWalls() {
+                const wallPositions = [
+                    { x: 600, y: 600 }, { x: 620, y: 600 }, { x: 640, y: 600 },
+                    { x: 1000, y: 1000 }, { x: 1020, y: 1000 }, { x: 1040, y: 1000 },
+                    { x: 1400, y: 800 }, { x: 1420, y: 800 }, { x: 1440, y: 800 }
+                ];
+                wallPositions.forEach(pos => {
+                    this.walls.create(pos.x, pos.y, 'wall');
+                });
             }
 
             drawPlayerHealthBar() {
